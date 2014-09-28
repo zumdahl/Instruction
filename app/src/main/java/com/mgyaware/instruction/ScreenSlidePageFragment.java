@@ -21,7 +21,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.MediaController;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import com.mgyaware.instruction.R;
 
@@ -71,11 +73,19 @@ public class ScreenSlidePageFragment extends Fragment {
                 .inflate(R.layout.fragment_screen_slide_page, container, false);
 
         // Set the title view to show the page number.
-        ((TextView) rootView.findViewById(android.R.id.text1)).setText(
-                getString(R.string.title_template_step, mPageNumber + 1));
+
+        // Following code created based on template:
+        // http://stackoverflow.com/questions/17399351/how-to-play-mp4-video-in-videoview-in-android
+        VideoView videoView = ((VideoView) rootView.findViewById(R.id.video));
+        MediaController vidMediaController = new MediaController(getActivity());
+        videoView.setVideoPath("android.resource://" + getActivity().getPackageName() + "/" + R.raw.clipcanvas_14348_offline);
+        vidMediaController.setMediaPlayer(videoView);
+        videoView.setMediaController(vidMediaController);
+        videoView.requestFocus();
+        videoView.start();
 
         ((TextView) rootView.findViewById(android.R.id.content)).setText(
-                "information"+mPageNumber);
+                "information" + mPageNumber);
 
         return rootView;
     }
