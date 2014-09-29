@@ -25,11 +25,11 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView android:id="@android:id/text1"
+        <!--VideoView wasn't displaying on emulator with "wrap_content" so hardcoded value-->
+        <VideoView android:id="@+id/video"
             style="?android:textAppearanceLarge"
-            android:textStyle="bold"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="800dp"
             android:layout_marginBottom="16dp" />
 
         <TextView android:id="@android:id/content"
