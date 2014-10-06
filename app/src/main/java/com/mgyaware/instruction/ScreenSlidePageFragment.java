@@ -158,17 +158,23 @@ public class ScreenSlidePageFragment extends Fragment {
         List slideContentList =
                 quizParser.parse(this.getActivity().getResources().openRawResource(resIdentifier));
         if (slideContentList.get(0).getClass() == SlideParser.SlideContent.class) {
+
             // Inflate the layout containing a video and body text.
             ViewGroup rootViewSlide = (ViewGroup) inflater
                     .inflate(R.layout.fragment_screen_slide_page, container, false);
+
             setSlideContent(rootViewSlide, slideContentList);
+
             return rootViewSlide;
         }
 
         else if (slideContentList.get(0).getClass() == SlideParser.QuizEntry.class) {
+
             ViewGroup rootViewQuiz = (ViewGroup) inflater
                     .inflate(R.layout.fragment_screen_quiz_page, container, false);
+
             setQuizContent(rootViewQuiz, slideContentList);
+
             return rootViewQuiz;
         } else {
             return null; //illegal condition
@@ -176,11 +182,13 @@ public class ScreenSlidePageFragment extends Fragment {
 
     }
 
-    private void setVideoContent(ViewGroup rootView)
+    private void setVideoContent(ViewGroup rootView, SlideParser.SlideContent slideContent)
     {
+        int videoIdentifier = this.getActivity().getResources().getIdentifier(slideContent.videoFileName, "raw", getActivity().getPackageName());
+
         VideoView videoView = ((VideoView) rootView.findViewById(R.id.video));
         MediaController vidMediaController = new MediaController(getActivity());
-        videoView.setVideoPath("android.resource://" + getActivity().getPackageName() + "/" + R.raw.clipcanvas_14348_offline);
+        videoView.setVideoPath("android.resource://" + getActivity().getPackageName() + "/" + videoIdentifier);
         vidMediaController.setMediaPlayer(videoView);
         videoView.setMediaController(vidMediaController);
         videoView.requestFocus();
@@ -192,6 +200,7 @@ public class ScreenSlidePageFragment extends Fragment {
         // There should only be one element in the list. The list only exists at all because
         // the SlideParser returns the same object whether it's a quiz or slide
         SlideParser.SlideContent slideContent = content.get(0);
+        setVideoContent(rootView, slideContent);
         Log.d("ScreenSlidePageFragment", "htmlText = " + slideContent.htmlText);
         ((TextView) rootView.findViewById(android.R.id.content)).setText(
                 Html.fromHtml(slideContent.htmlText));
