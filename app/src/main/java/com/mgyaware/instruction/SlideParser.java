@@ -66,15 +66,25 @@ public class SlideParser {
 
         //parser.require(XmlPullParser.START_TAG, null, "feed");
         while (parser.next() != XmlPullParser.END_TAG) {
+
+            Log.d("SlideParser", "Beggining of readSlideFeed loop");
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
             }
             String name = parser.getName();
             // Starts by looking for the entry tag
             if (name.equals("video")) {
+                parser.next();
                 content.videoFileName = parser.getText();
-            } else if (name.equals("htmlText")) {
+                Log.d("SlideParser", "read video file name = " + content.videoFileName);
+                parser.nextTag();
+                parser.require(XmlPullParser.END_TAG, null, "video");
+            } else if (name.equals("html_formatted_text")) {
+                parser.next();
                 content.htmlText = parser.getText();
+                Log.d("SlideParser", "read htmlText = " + content.htmlText);
+                parser.nextTag();
+                parser.require(XmlPullParser.END_TAG, null, "html_formatted_text");
             } else {
                 Log.e("SlideParser", "Unexpected slide XML format sent to readSlideFeed");
             }

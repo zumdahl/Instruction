@@ -2,6 +2,6 @@
 <slide>
     <video>clipcanvas_14348_offline.mp4</video>
     <html_formatted_text>
-        <i>This is</i> the 2nd slide
+        &lt;b&gt; This is&lt;/b&gt; the 2nd slide
     </html_formatted_text>
 </slide>

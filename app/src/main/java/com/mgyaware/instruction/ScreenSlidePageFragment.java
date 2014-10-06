@@ -21,6 +21,7 @@ import android.app.Fragment;
 import android.graphics.Color;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -144,12 +145,15 @@ public class ScreenSlidePageFragment extends Fragment {
 
     }
 
+
     private View setSlidePageContent(LayoutInflater inflater, ViewGroup container,
                                       Bundle savedInstanceState) throws XmlPullParserException, IOException
     {
         SlideParser quizParser = new SlideParser();
         String resourceFileName = "slide" + mPageNumber;
+
         Log.d("ScreenSlidePageFragment", "resourceFileName = " + resourceFileName);
+
         int resIdentifier = this.getActivity().getResources().getIdentifier("slide" + mPageNumber, "raw", getActivity().getPackageName());
         List slideContentList =
                 quizParser.parse(this.getActivity().getResources().openRawResource(resIdentifier));
@@ -160,6 +164,7 @@ public class ScreenSlidePageFragment extends Fragment {
             setSlideContent(rootViewSlide, slideContentList);
             return rootViewSlide;
         }
+
         else if (slideContentList.get(0).getClass() == SlideParser.QuizEntry.class) {
             ViewGroup rootViewQuiz = (ViewGroup) inflater
                     .inflate(R.layout.fragment_screen_quiz_page, container, false);
@@ -184,8 +189,12 @@ public class ScreenSlidePageFragment extends Fragment {
 
     private void setSlideContent(ViewGroup rootView, List<SlideParser.SlideContent> content )
     {
+        // There should only be one element in the list. The list only exists at all because
+        // the SlideParser returns the same object whether it's a quiz or slide
+        SlideParser.SlideContent slideContent = content.get(0);
+        Log.d("ScreenSlidePageFragment", "htmlText = " + slideContent.htmlText);
         ((TextView) rootView.findViewById(android.R.id.content)).setText(
-                "information" + mPageNumber);
+                Html.fromHtml(slideContent.htmlText));
     }
 
     private void setQuizContent(ViewGroup rootView, List<SlideParser.QuizEntry> content)
