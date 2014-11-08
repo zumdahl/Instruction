@@ -16,13 +16,12 @@ public class SplashScreen extends Activity {
         setContentView(R.layout.activity_splash);
 
         Application application = (Application) getApplication();
-        if(application.topMenu.size()==0)
-        {
+
+        if(application.ListViewMenus.get("topMenu")==null){
             Log.e(TAG, "topMenu size == 0. ");
             application.pull();
             application.initData();
-            if(application.topMenu.size()==0)
-            {
+            if(application.ListViewMenus.get("topMenu")==null){
                 Log.e(TAG, "last attempt, topMenu size == 0. ");
                 //error handling...
 
@@ -31,7 +30,7 @@ public class SplashScreen extends Activity {
 
         //goto mainActivity
         Intent i = new Intent(SplashScreen.this, MainActivity.class);
-        //i.putExtra("",);
+        i.putExtra("menu","topMenu");
         startActivity(i);
         finish();
     }

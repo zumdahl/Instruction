@@ -16,7 +16,6 @@
 
 package com.mgyaware.instruction;
 
-import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,39 +23,35 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.util.ArrayList;
+
 
 public class MainActivity extends ListActivity {
-    /**
-     * This class describes an individual sample (the sample title, and the activity class that
-     * demonstrates this sample).
-     */
-    private class Course {
-        private CharSequence title;
-        private Class<? extends Activity> activityClass;
-
-        public Course(int titleResId, Class<? extends Activity> activityClass) {
-            this.activityClass = activityClass;
-            this.title = getResources().getString(titleResId);
-        }
-
-        @Override
-        public String toString() {
-            return title.toString();
-        }
-    }
-
-    private static Course[] mCourses;
+    private static ArrayList<Application.ListViewName> mCourses;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setListView();
+    }
 
-        // Instantiate the list of samples.
-        mCourses = new Course[]{
-                new Course(R.string.course1, ScreenSlideActivity.class)
-        };
+    public void onResume()
+    {
+        super.onResume();
+        setListView();
+    }
 
-        setListAdapter(new ArrayAdapter<Course>(this,
+    private void setListView(){
+        Application application = (Application) getApplication();
+
+        Intent i = getIntent();
+        String menuItem = i.getStringExtra("menu");
+        if(!menuItem.equals("topMenu")) {
+            setTitle(menuItem);
+        }
+        mCourses = application.ListViewMenus.get(menuItem);
+
+        setListAdapter(new ArrayAdapter<Application.ListViewName>(this,
                 android.R.layout.simple_list_item_1,
                 android.R.id.text1,
                 mCourses));
@@ -65,6 +60,17 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onListItemClick(ListView listView, View view, int position, long id) {
         // Launch the sample associated with this list position.
-        startActivity(new Intent(MainActivity.this, mCourses[position].activityClass));
+        Intent i = new Intent(MainActivity.this, mCourses.get(position).activityClass);
+        i.putExtra("menu",mCourses.get(position).toString());
+        startActivity(i);
+    }
+
+    @Override
+    public void onBackPressed(){
+        Intent i = getIntent();
+        if(!i.getStringExtra("menu").equals("topMenu")){
+            i.putExtra("menu","topMenu");
+        }
+        super.onBackPressed();
     }
 }
