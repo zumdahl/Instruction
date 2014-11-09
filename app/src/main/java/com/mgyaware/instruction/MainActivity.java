@@ -32,9 +32,10 @@ import java.util.ArrayList;
 
 public class MainActivity extends ListActivity {
     public static final String TAG = "MainActivity";
-    private Intent i;
+    private Intent intent;
     private Application application;
-    private static ArrayList<Application.ListViewName> mCourses;
+    private static ArrayList<ListViewName> mCourses;
+
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,40 +49,45 @@ public class MainActivity extends ListActivity {
 
     private void setListView() {
         application = (Application) getApplication();
-        i = getIntent();
+        intent = getIntent();
 
-        String menuItem = i.getStringExtra("menu");
+        String menuItem = intent.getStringExtra("menu");
         if (!menuItem.equals("topMenu")) {
             setTitle(menuItem);
         }
 
         mCourses = application.ListViewMenus.get(menuItem);
 
-        setListAdapter(new ArrayAdapter<Application.ListViewName>(this,
-                android.R.layout.simple_list_item_1,
+        setListAdapter(new ArrayAdapter<ListViewName>(this,
+                android.R.layout.simple_list_item_2,
                 android.R.id.text1,
                 mCourses));
     }
 
     @Override
     protected void onListItemClick(ListView listView, View view, int position, long id) {
-        // Launch the sample associated with this list position.
         Intent i = new Intent(MainActivity.this, mCourses.get(position).activityClass);
-        i.putExtra("menu", mCourses.get(position).toString());
+
+        if (intent.getStringExtra("menu").equals("topMenu")) {
+            i.putExtra("menu", mCourses.get(position).toString());
+        } else {
+            i.putExtra("menu", intent.getStringExtra("menu"));
+            i.putExtra("slideset", mCourses.get(position).toString());
+        }
         startActivity(i);
     }
 
     @Override
     public void onBackPressed() {
-        if (!i.getStringExtra("menu").equals("topMenu")) {
-            i.putExtra("menu", "topMenu");
+        if (!intent.getStringExtra("menu").equals("topMenu")) {
+            intent.putExtra("menu", "topMenu");
         }
         super.onBackPressed();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (i.getStringExtra("menu").equals("topMenu")) {
+        if (intent.getStringExtra("menu").equals("topMenu")) {
             getMenuInflater().inflate(R.menu.admin_menu, menu);
         }
         return true;
@@ -92,7 +98,7 @@ public class MainActivity extends ListActivity {
         switch (item.getItemId()) {
             case R.id.pull:
                 application.pull();
-                application.initData();
+                Log.e(TAG, "activity refresh?");
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

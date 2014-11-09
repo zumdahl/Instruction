@@ -18,7 +18,10 @@ package com.mgyaware.instruction;
 
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.net.Uri;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.text.Html;
@@ -35,6 +38,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 import android.widget.VideoView;
 
+import org.w3c.dom.Text;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -43,7 +47,7 @@ import java.util.List;
 /**
  * A fragment representing a single step in a wizard. The fragment shows a dummy title indicating
  * the page number, along with some dummy text.
- *
+ * <p/>
  * <p>This class is used by the {@link //CardFlipActivity} and {@link
  * ScreenSlideActivity} samples.</p>
  */
@@ -63,7 +67,7 @@ public class ScreenSlidePageFragment extends Fragment {
     /**
      * ordinal of pageType represented by pageType enum
      */
-   // private SlidePageType pageType;
+    // private SlidePageType pageType;
 
 
     /**
@@ -89,24 +93,86 @@ public class ScreenSlidePageFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
 
-        try {
-            return setSlidePageContent(inflater, container, savedInstanceState);
-        }
-        catch(XmlPullParserException xmlE)
-        {
-            Log.e("ScreenSlidePageFragment", "Unable to parse content XML");
-            Log.e("ScreenSlidePageFragment", Log.getStackTraceString(xmlE));
-            return null;
-        }
-        catch(IOException ioE)
-        {
-            Log.e("ScreenSlidePageFragment", "Unable to read content xml file");
-            Log.e("ScreenSlidePageFragment", Log.getStackTraceString(ioE));
 
-            return null;
+        ScreenSlideActivity main = (ScreenSlideActivity) getActivity();
+        Slide slide = main.slides.get(mPageNumber);
+        Context context = main.getBaseContext();
+
+        ViewGroup rootViewSlide = (ViewGroup) inflater
+                .inflate(R.layout.fragment_slide, container, false);
+
+
+        LinearLayout ll = new LinearLayout(context);
+
+
+        if (!slide.title.equals("")) {
         }
+        if (!slide.video.equals("")) {
+            TextView txt = new TextView(context);
+            txt.setText("test video should show up between here");
+            txt.setTextSize(24);
+            txt.setTextColor(Color.BLACK);
+            ll.addView(txt);
+
+            //not working
+
+            String videoTitle = slide.video.replace(".mp4","");
+            int videoIdentifier = this.getActivity().getResources().getIdentifier(videoTitle, "raw", getActivity().getPackageName());
+
+            VideoView videoView = new VideoView(context);
+            Uri uri = Uri.parse("android.resource://" + getActivity().getPackageName() + "/raw/" + videoTitle);
+            videoView.setVideoURI(uri);
+            //videoView.setVideoPath("android.resource://" + getActivity().getPackageName() + "/" + videoIdentifier);
+
+            MediaController vidMediaController = new MediaController(context);
+            vidMediaController.setMediaPlayer(videoView);
+            videoView.setMediaController(vidMediaController);
+            videoView.requestFocus();
+
+            ll.addView(videoView);
+
+            TextView txt2 = new TextView(context);
+            txt2.setText("and here");
+            txt2.setTextSize(24);
+            txt2.setTextColor(Color.BLACK);
+            ll.addView(txt2);
+
+        }
+        if (!slide.picture.equals("")) {
+        }
+        if (!slide.content.equals("")) {
+            TextView txt = new TextView(context);
+            txt.setText(slide.content);
+            txt.setTextSize(24);
+            txt.setTextColor(Color.BLACK);
+            ll.addView(txt);
+        }
+
+
+        rootViewSlide.addView(ll);
+
+        return rootViewSlide;
+
+
+
+//        try {
+//            return setSlidePageContent(inflater, container, savedInstanceState);
+//        }
+//        catch(XmlPullParserException xmlE)
+//        {
+//            Log.e("ScreenSlidePageFragment", "Unable to parse content XML");
+//            Log.e("ScreenSlidePageFragment", Log.getStackTraceString(xmlE));
+//            return null;
+//        }
+//        catch(IOException ioE)
+//        {
+//            Log.e("ScreenSlidePageFragment", "Unable to read content xml file");
+//            Log.e("ScreenSlidePageFragment", Log.getStackTraceString(ioE));
+//
+//            return null;
+//        }
 
  /*       switch (pageType) {
             case VIDEO_WITH_SLIDE:
@@ -140,15 +206,11 @@ public class ScreenSlidePageFragment extends Fragment {
         // http://stackoverflow.com/questions/17399351/how-to-play-mp4-video-in-videoview-in-android
 
 
-
-
-
     }
 
 
     private View setSlidePageContent(LayoutInflater inflater, ViewGroup container,
-                                      Bundle savedInstanceState) throws XmlPullParserException, IOException
-    {
+                                     Bundle savedInstanceState) throws XmlPullParserException, IOException {
         SlideParser quizParser = new SlideParser();
         String resourceFileName = "slide" + mPageNumber;
 
@@ -166,9 +228,7 @@ public class ScreenSlidePageFragment extends Fragment {
             setSlideContent(rootViewSlide, slideContentList);
 
             return rootViewSlide;
-        }
-
-        else if (slideContentList.get(0).getClass() == SlideParser.QuizEntry.class) {
+        } else if (slideContentList.get(0).getClass() == SlideParser.QuizEntry.class) {
 
             ViewGroup rootViewQuiz = (ViewGroup) inflater
                     .inflate(R.layout.fragment_screen_quiz_page, container, false);
@@ -182,8 +242,7 @@ public class ScreenSlidePageFragment extends Fragment {
 
     }
 
-    private void setVideoContent(ViewGroup rootView, SlideParser.SlideContent slideContent)
-    {
+    private void setVideoContent(ViewGroup rootView, SlideParser.SlideContent slideContent) {
         int videoIdentifier = this.getActivity().getResources().getIdentifier(slideContent.videoFileName, "raw", getActivity().getPackageName());
 
         VideoView videoView = ((VideoView) rootView.findViewById(R.id.video));
@@ -195,8 +254,7 @@ public class ScreenSlidePageFragment extends Fragment {
         videoView.start();
     }
 
-    private void setSlideContent(ViewGroup rootView, List<SlideParser.SlideContent> content )
-    {
+    private void setSlideContent(ViewGroup rootView, List<SlideParser.SlideContent> content) {
         // There should only be one element in the list. The list only exists at all because
         // the SlideParser returns the same object whether it's a quiz or slide
         SlideParser.SlideContent slideContent = content.get(0);
@@ -207,13 +265,11 @@ public class ScreenSlidePageFragment extends Fragment {
     }
 
     private void setQuizContent(ViewGroup rootView, List<SlideParser.QuizEntry> content)
-            throws XmlPullParserException, IOException
-    {
+            throws XmlPullParserException, IOException {
 
         LinearLayout quizLayout = (LinearLayout) rootView.findViewById(R.id.quiz_layout);
         QuizButtonListener buttonListener = new QuizButtonListener();
-        for (SlideParser.QuizEntry entry : content)
-        {
+        for (SlideParser.QuizEntry entry : content) {
             TextView questionText = new TextView(getActivity());
             questionText.setText(entry.question);
             quizLayout.addView(questionText);
@@ -254,8 +310,7 @@ public class ScreenSlidePageFragment extends Fragment {
     }
 
 
-    public class QuizButtonListener implements View.OnClickListener
-    {
+    public class QuizButtonListener implements View.OnClickListener {
 
         @Override
         public void onClick(View v) {

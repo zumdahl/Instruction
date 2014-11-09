@@ -16,8 +16,7 @@
 
 package com.mgyaware.instruction;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
+import android.app.*;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v13.app.FragmentStatePagerAdapter;
@@ -28,11 +27,13 @@ import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.ArrayList;
+
 /**
  * Demonstrates a "screen-slide" animation using a {@link ViewPager}. Because {@link ViewPager}
  * automatically plays such an animation when calling {@link ViewPager#setCurrentItem(int)}, there
  * isn't any animation-specific code in this sample.
- *
+ * <p/>
  * <p>This sample shows a "next" button that advances the user to the next step in a wizard,
  * animating the current screen out (to the left) and the next screen in (from the right). The
  * reverse animation is played when the user presses the "previous" button.</p>
@@ -40,10 +41,8 @@ import android.view.MenuItem;
  * @see ScreenSlidePageFragment
  */
 public class ScreenSlideActivity extends FragmentActivity {
-    /**
-     * The number of pages (wizard steps) to show in this demo.
-     */
-    private static final int NUM_PAGES = 3;
+
+    private static int NUM_PAGES;
 
     /**
      * The pager widget, which handles animation and allows swiping horizontally to access previous
@@ -56,12 +55,23 @@ public class ScreenSlideActivity extends FragmentActivity {
      */
     private PagerAdapter mPagerAdapter;
 
-
+    public ArrayList<Slide> slides;
+    private String menu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_screen_slide);
+
+        Intent intent = getIntent();
+        menu = intent.getStringExtra("menu");
+        String slideset = intent.getStringExtra("slideset");
+
+        Application application = (Application) getApplication();
+
+        slides = application.SlideSets.get(menu + "-" + slideset);
+        NUM_PAGES = slides.size();
+//        NUM_PAGES = 3;
 
         // Instantiate a ViewPager and a PagerAdapter.
         mPager = (ViewPager) findViewById(R.id.pager);
@@ -102,7 +112,7 @@ public class ScreenSlideActivity extends FragmentActivity {
             case android.R.id.home:
                 // Navigate "up" the demo structure to the launchpad activity.
                 // See http://developer.android.com/design/patterns/navigation.html for more.
-                NavUtils.navigateUpTo(this, new Intent(this, MainActivity.class));
+                returnHome();
                 return true;
 
             case R.id.action_previous:
@@ -114,11 +124,22 @@ public class ScreenSlideActivity extends FragmentActivity {
             case R.id.action_next:
                 // Advance to the next step in the wizard. If there is no next step, setCurrentItem
                 // will do nothing.
-                mPager.setCurrentItem(mPager.getCurrentItem() + 1);
+
+                if (item.getTitle().equals("Finish")) {
+                    returnHome();
+                } else {
+                    mPager.setCurrentItem(mPager.getCurrentItem() + 1);
+                }
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void returnHome() {
+        Intent i = new Intent(this, MainActivity.class);
+        i.putExtra("menu", menu);
+        NavUtils.navigateUpTo(this, i);
     }
 
     /**

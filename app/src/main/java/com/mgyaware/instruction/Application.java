@@ -1,6 +1,5 @@
 package com.mgyaware.instruction;
 
-import android.app.Activity;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -18,50 +17,36 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 
 public class Application extends android.app.Application {
-    public static final String TAG = "CouchDB";
-    private static final String DATABASE_NAME = "trainingtest";
-    private static final String SYNC_URL = "";
+    public static final String TAG = "Application";
+
+    private static final String DATABASE_NAME = Config.database;
+    private static final String SYNC_URL = Config.url;
+
+    public HashMap<String, ArrayList<Slide>> SlideSets;
+    public HashMap<String, ArrayList<ListViewName>> ListViewMenus;
 
     private Manager manager;
     private Database database;
     private URL syncUrl;
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        ListViewMenus = new HashMap<String, ArrayList<ListViewName>>();
+        SlideSets = new HashMap<String, ArrayList<Slide>>();
+
+        initDatabase();
+    }
+
     public Database getDatabase() {
         return this.database;
-    }
-
-
-    public HashMap<String, ArrayList<ListViewName>> ListViewMenus;
-
-    private static class ListViewNameComparator implements Comparator<ListViewName> {
-        @Override
-        public int compare(ListViewName lhs, ListViewName rhs) {
-            return lhs.order - rhs.order;
-        }
-    }
-
-    public class ListViewName {
-        public String title;
-        public int order;
-        public Class<? extends Activity> activityClass;
-
-        public ListViewName(String title, int order, Class<? extends Activity> activityClass) {
-            this.title = title;
-            this.order = order;
-            this.activityClass = activityClass;
-        }
-
-        @Override
-        public String toString() {
-            return title;
-        }
     }
 
     public void initData() {
@@ -74,6 +59,7 @@ public class Application extends android.app.Application {
             //something is up
             if (result.getCount() == 0) {
                 Log.e(TAG, "no Query results.");
+                pull();
                 return;
             }
 
@@ -97,31 +83,28 @@ public class Application extends android.app.Application {
 
     public void pull() {
         Log.v(TAG, "Start Pull...");
+
         Replication pullRep = database.createPullReplication(syncUrl);
         //pullRep.setFilter("training/pull");     //$host/trainingtest/_changes?filter=training/pull
         pullRep.setContinuous(false);
         pullRep.start();
+
+        //add handler to initData after complete
+
         Log.v(TAG, "End Pull...");
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        ListViewMenus = new HashMap<String, ArrayList<ListViewName>>();
-
-        initDatabase();
-    }
-
-    private void initDatabase() {
+    public void initDatabase() {
         Log.e(TAG, "initDatabase Start.");
+
         try {
             Manager.enableLogging(Log.TAG, Log.VERBOSE);
             Manager.enableLogging(Log.TAG_SYNC, Log.DEBUG);
             Manager.enableLogging(Log.TAG_QUERY, Log.DEBUG);
             Manager.enableLogging(Log.TAG_VIEW, Log.DEBUG);
             Manager.enableLogging(Log.TAG_DATABASE, Log.DEBUG);
-
             manager = new Manager(new AndroidContext(getApplicationContext()), Manager.DEFAULT_OPTIONS);
+
         } catch (IOException e) {
             Log.e(TAG, "Cannot create Manager object", e);
             return;
@@ -163,18 +146,51 @@ public class Application extends android.app.Application {
                         (level.equals("topMenu")) ? MainActivity.class : ScreenSlideActivity.class
                 ));
             }
-            Collections.sort(menu, new ListViewNameComparator());
+            Collections.sort(menu, new BaseOrderComparator());
             ListViewMenus.put(level, menu);
         } else {
             Log.e(TAG, "Missing menu items");
         }
     }
 
+    private void setSlides(ArrayList modules, String level) {
+        if (modules != null) {
+            int len = modules.size();
+            if (len == 0) {
+                Log.e(TAG, "slides length==0.");
+                return;
+            }
+
+            ArrayList<Slide> slides = new ArrayList<Slide>();
+            for (int i = 0; i < len; i++) {
+                LinkedHashMap module = (LinkedHashMap) modules.get(i);
+                slides.add(new Slide(module.get("title").toString(), Integer.parseInt(module.get("order").toString()),
+                        module.get("content").toString(), module.get("picture").toString(), module.get("video").toString()));
+            }
+            Collections.sort(slides, new BaseOrderComparator());
+            SlideSets.put(level, slides);
+        } else {
+            Log.e(TAG, "Missing slide items");
+        }
+    }
+
     private void setModule(Document doc) {
         String level = doc.getProperty("Module").toString();
-        ArrayList modules = (ArrayList) doc.getProperty("Slidesets");
-        setMenu(modules, level);
-        //set slides....
-
+        ArrayList modules;
+        for (Map.Entry<String, Object> p : doc.getProperties().entrySet()) {
+            if (p.getValue().getClass() == ArrayList.class) {
+                modules = (ArrayList) p.getValue();
+                if (p.getKey().equals("Slidesets")) {
+                    setMenu(modules, level);
+                } else {
+                    setSlides(modules, level + "-" + p.getKey());
+                }
+            }
+        }
     }
+
+
+//    public void getSlides(String name) {
+//
+//    }
 }
